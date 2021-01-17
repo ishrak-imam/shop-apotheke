@@ -1,9 +1,14 @@
 import React from "react";
 
-// https://api.github.com/search/repositories?q=created:>2021-01-08+language:js&sort=stars&order=desc&per_page=1&page=2
+import { Box } from "@material-ui/core";
+import { RepositoryList } from "./Components/RepositoryList";
 
 const App: React.FC = () => {
-    return <div>Hello world</div>;
+    return (
+        <Box my={4} display="flex" justifyContent="center">
+            <RepositoryList />
+        </Box>
+    );
 };
 
 export default App;
