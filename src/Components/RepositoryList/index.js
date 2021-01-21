@@ -19,15 +19,15 @@ export const RepositoryList: React.FC = () => {
     const {
         data,
         isLoading,
-        canFetchMore,
-        fetchMore,
-        isFetchingMore,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
         queryKey,
     } = useGithubRepositories(`created:>${queryDate}+language:${filter}`);
 
-    const [toggleStar] = useStarToggleMutation();
+    const { mutate: toggleStar } = useStarToggleMutation(queryKey);
     const onToggleStar = (repo) => {
-        toggleStar({ queryKey, repo });
+        toggleStar(repo);
     };
 
     const [showStared, setShowStared] = React.useState(false);
@@ -76,16 +76,16 @@ export const RepositoryList: React.FC = () => {
                     </List>
                 )}
 
-                {canFetchMore && !showStared ? (
+                {hasNextPage && !showStared ? (
                     <Box display="flex" justifyContent="center" mt={4}>
-                        {isFetchingMore ? (
+                        {isFetchingNextPage ? (
                             "Loading..."
                         ) : (
                             <Button
                                 variant="contained"
                                 color="primary"
                                 onClick={() => {
-                                    fetchMore();
+                                    fetchNextPage();
                                 }}
                             >
                                 Load more

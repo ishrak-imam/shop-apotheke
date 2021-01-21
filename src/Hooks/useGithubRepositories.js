@@ -3,7 +3,7 @@ import axios from "axios";
 
 const LIMIT = 5;
 
-const toRepositoryEntity = (item, page) => ({
+const toRepositoryEntity = (item) => ({
     id: item.id,
     isStared: false,
     owner: {
@@ -19,22 +19,24 @@ const toRepositoryEntity = (item, page) => ({
     watchers: item.watchers_count,
     openIssues: item.open_issues,
     description: item.description,
-    page,
 });
 
-const fetchData = async (_: string, query: string, page = 1) => {
+const fetchData = async ({ queryKey, pageParam = 1 }) => {
     const { data } = await axios.get(
-        `https://api.github.com/search/repositories?q=${query}&sort=stars&order=desc&per_page=${LIMIT}&page=${page}`
+        `https://api.github.com/search/repositories?q=${queryKey[1]}&sort=stars&order=desc&per_page=${LIMIT}&page=${pageParam}`
     );
 
     return {
         totalPage: Math.ceil(data.total_count / LIMIT),
-        page,
+        page: pageParam,
         totalCount: data.total_count,
         repos: data.items.reduce(
             (map, item) => {
                 map.ids.push(item.id);
-                map.byId[item.id] = toRepositoryEntity(item, page);
+                map.byId[item.id] = {
+                    ...toRepositoryEntity(item),
+                    page: pageParam,
+                };
                 return map;
             },
             { ids: [], byId: {}, starIds: [] }
@@ -47,7 +49,7 @@ export const useGithubRepositories = (query: string) => {
     const queryResult = useInfiniteQuery(queryKey, fetchData, {
         refetchOnWindowFocus: false,
         staleTime: Infinity,
-        getFetchMore: (lastPage) => {
+        getNextPageParam: (lastPage) => {
             if (!lastPage) {
                 return 0;
             }
@@ -56,8 +58,8 @@ export const useGithubRepositories = (query: string) => {
         },
     });
 
-    const flattenedData = Array.isArray(queryResult.data)
-        ? queryResult.data.reduce(
+    const flattenedData = queryResult.data
+        ? queryResult.data.pages.reduce(
               (map, page) => {
                   if (!page) {
                       return { ids: [], byId: {}, starIds: [] };

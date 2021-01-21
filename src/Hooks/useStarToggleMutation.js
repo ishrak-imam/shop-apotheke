@@ -1,15 +1,21 @@
-import { useMutation, queryCache } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 
-const starToggle = ({ queryKey, repo }) => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            queryCache.cancelQueries(queryKey);
-            queryCache.setQueryData(queryKey, (oldData) =>
-                oldData.map((item) => {
+const starToggle = (repo) =>
+    Promise.resolve({
+        ...repo,
+        isStarted: !repo.isStared,
+    });
+
+export const useStarToggleMutation = (queryKey) => {
+    const queryClient = useQueryClient();
+    return useMutation(starToggle, {
+        onMutate: (repo) => {
+            queryClient.cancelQueries(queryKey);
+            queryClient.setQueryData(queryKey, (oldData) => ({
+                ...oldData,
+                pages: oldData.pages.map((item) => {
                     if (item.page === repo.page) {
-                        const isStared = item.repos.byId[repo.id].isStared;
-
-                        if (isStared) {
+                        if (repo.isStared) {
                             item.repos.starIds = item.repos.starIds.filter(
                                 (id) => id !== repo.id
                             );
@@ -24,19 +30,16 @@ const starToggle = ({ queryKey, repo }) => {
                                 byId: {
                                     ...item.repos.byId,
                                     [repo.id]: {
-                                        ...item.repos.byId[repo.id],
-                                        isStared: !isStared,
+                                        ...repo,
+                                        isStared: !repo.isStared,
                                     },
                                 },
                             },
                         };
                     }
                     return item;
-                })
-            );
-            resolve("ok");
-        }, 0);
+                }),
+            }));
+        },
     });
 };
-
-export const useStarToggleMutation = () => useMutation(starToggle);
