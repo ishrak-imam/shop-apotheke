@@ -4,7 +4,7 @@ import { List, Box, Button } from "@material-ui/core";
 import { RepoItem } from "./RepoItem";
 import { Filter } from "./Filter";
 import { useGithubRepositories } from "../../Hooks/useGithubRepositories";
-import { useStarToggleMutation } from "../../Hooks/useStarMutation";
+import { useStarToggleMutation } from "../../Hooks/useStarToggleMutation";
 
 const date = new Date();
 date.setDate(date.getDate() - 7);
@@ -46,6 +46,7 @@ export const RepositoryList: React.FC = () => {
                 width={650}
             >
                 <Button
+                    data-testid="star-filter"
                     variant="contained"
                     color="primary"
                     onClick={() => onShowStared()}
@@ -61,7 +62,7 @@ export const RepositoryList: React.FC = () => {
                         Loading...
                     </Box>
                 ) : (
-                    <List>
+                    <List data-testid="repo-list">
                         {repoIds.map((id) => {
                             const repo = data.byId[id];
                             return (
